@@ -22,6 +22,7 @@ import (
 
 type config struct {
 	awsRegion        string // AWS_REGION
+	awsEndPoint      string // AWS_END_POINT
 	s3Bucket         string // AWS_S3_BUCKET
 	s3KeyPrefix      string // AWS_S3_KEY_PREFIX
 	httpCacheControl string // HTTP_CACHE_CONTROL (max-age=86400, no-cache ...)
@@ -86,6 +87,10 @@ func configFromEnvironmentVariables() *config {
 	if len(region) == 0 {
 		region = "us-east-1"
 	}
+	endPoint := os.Getenv("AWS_ENDPOINT")
+	if len(endPoint) == 0 {
+		endPoint = ""
+	}
 	port := os.Getenv("APP_PORT")
 	if len(port) == 0 {
 		port = "80"
@@ -104,6 +109,7 @@ func configFromEnvironmentVariables() *config {
 	}
 	conf := &config{
 		awsRegion:        region,
+		awsEndPoint:      endPoint,
 		s3Bucket:         os.Getenv("AWS_S3_BUCKET"),
 		s3KeyPrefix:      os.Getenv("AWS_S3_KEY_PREFIX"),
 		httpCacheControl: os.Getenv("HTTP_CACHE_CONTROL"),
@@ -123,7 +129,7 @@ func configFromEnvironmentVariables() *config {
 	}
 	// Proxy
 	log.Printf("[config] Proxy to %v", conf.s3Bucket)
-	log.Printf("[config] AWS Region: %v", conf.awsRegion)
+	log.Printf("[config] AWS Region: %v%v", conf.awsRegion, conf.awsEndPoint)
 
 	// TLS pem files
 	if (len(conf.sslCert) > 0) && (len(conf.sslKey) > 0) {
@@ -287,7 +293,11 @@ func awss3(w http.ResponseWriter, r *http.Request) {
 }
 
 func s3get(backet, key string) (*s3.GetObjectOutput, error) {
-	sess, err := session.NewSession(&aws.Config{Region: aws.String(c.awsRegion)})
+	var ep *string = nil
+	if len(c.awsEndPoint) > 0 {
+		ep = aws.String(c.awsEndPoint)
+	}
+	sess, err := session.NewSession(&aws.Config{Region: aws.String(c.awsRegion), Endpoint: ep})
 	if err != nil {
 		log.Printf("[service] unable to create aws session: %s", err)
 	}

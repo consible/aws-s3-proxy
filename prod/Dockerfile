@@ -28,7 +28,7 @@ RUN apk --no-cache add --virtual build-dependencies bash gcc musl-dev openssl go
     && chmod -R 777 /go \
 
     # Compile s3-proxy
-    && go get -u github.com/pottava/aws-s3-proxy \
+    && go get -u github.com/consible/aws-s3-proxy \
     && mv /go/bin/aws-s3-proxy /usr/bin \
 
     # Clean up
