@@ -297,7 +297,12 @@ func s3get(backet, key string) (*s3.GetObjectOutput, error) {
 	if len(c.awsEndPoint) > 0 {
 		ep = aws.String(c.awsEndPoint)
 	}
-	sess, err := session.NewSession(&aws.Config{Region: aws.String(c.awsRegion), Endpoint: ep})
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String(c.awsRegion),
+		Endpoint: ep,
+		DisableSSL:       aws.Bool(true),
+		S3ForcePathStyle: aws.Bool(true),
+	})
 	if err != nil {
 		log.Printf("[service] unable to create aws session: %s", err)
 	}
